@@ -8,10 +8,18 @@
     <ImplicitUsings>disable</ImplicitUsings>
     <AssemblyName>DualAudioMirror</AssemblyName>
     <RootNamespace>DualAudioMirror</RootNamespace>
+    <AssemblyTitle>DualAudioMirror</AssemblyTitle>
+    <Description>Toca o mesmo áudio em dois ou mais dispositivos Windows ao mesmo tempo.</Description>
+    <ApplicationIcon>..\..\assets\icon.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="NAudio" Version="2.2.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="..\..\assets\icon.ico" Link="icon.ico" />
   </ItemGroup>
 
 </Project>
