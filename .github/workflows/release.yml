@@ -1,0 +1,44 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    uses: ./.github/workflows/package.yml
+
+  release:
+    needs: package
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Download assets
+        uses: actions/download-artifact@v4
+        with:
+          name: release-assets
+          path: artifacts
+      - name: Gerar notas
+        shell: pwsh
+        run: |
+          $ver = $env:GITHUB_REF_NAME -replace '^v',''
+          pwsh scripts/notes.ps1 -Version $ver | Out-File -Encoding utf8 notes.md
+      - name: Criar release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $tag = $env:GITHUB_REF_NAME
+          $ErrorActionPreference = 'Continue'
+          gh release view $tag *> $null
+          $exists = $LASTEXITCODE -eq 0
+          if (-not $exists) {
+            gh release create $tag --title "DualAudioMirror $tag" --notes-file notes.md artifacts/*.*
+            if ($LASTEXITCODE -ne 0) { exit 1 }
+          }
+          gh release upload $tag artifacts/*.* --clobber
+          if ($LASTEXITCODE -ne 0) { exit 1 }

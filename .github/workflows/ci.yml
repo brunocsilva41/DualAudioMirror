@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+      - name: Cache NuGet
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            nuget-
+      - name: Restore
+        run: dotnet restore src/DualAudioMirror/DualAudioMirror.csproj
+      - name: Build
+        run: dotnet build src/DualAudioMirror/DualAudioMirror.csproj --configuration Release --no-restore -warnaserror
+
+  test:
+    needs: build
+    runs-on: windows-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+      - name: Verificar testes
+        id: tests
+        if: hashFiles('tests/**/*.csproj') == ''
+        shell: pwsh
+        run: Write-Host "testes ainda não disponíveis"
+      - name: Test
+        if: hashFiles('tests/**/*.csproj') != ''
+        run: dotnet test --configuration Release

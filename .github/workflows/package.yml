@@ -1,0 +1,74 @@
+name: Package
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+      - name: Publicar
+        run: pwsh scripts/build.ps1
+      - name: Upload publish
+        uses: actions/upload-artifact@v4
+        with:
+          name: publish-win-x64
+          path: publish/win-x64
+          retention-days: 7
+
+  package:
+    needs: publish
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Download publish
+        uses: actions/download-artifact@v4
+        with:
+          name: publish-win-x64
+          path: publish/win-x64
+      - name: Garantir Inno Setup
+        shell: pwsh
+        run: |
+          $candidates = @(
+            "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe",
+            "$env:ProgramFiles\Inno Setup 6\ISCC.exe",
+            "$env:LOCALAPPDATA\Programs\Inno Setup 6\ISCC.exe"
+          )
+          $found = $candidates | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
+          if (-not $found) {
+            $cmd = Get-Command ISCC.exe -ErrorAction SilentlyContinue
+            if ($cmd) { $found = $cmd.Source }
+          }
+          if (-not $found) {
+            choco install innosetup -y --no-progress
+            if ($LASTEXITCODE -ne 0) { exit 1 }
+            $found = $candidates | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
+          }
+          if (-not $found) {
+            $cmd = Get-Command ISCC.exe -ErrorAction SilentlyContinue
+            if ($cmd) { $found = $cmd.Source }
+          }
+          if (-not $found) {
+            Write-Host "ISCC nao encontrado apos instalacao"
+            exit 1
+          }
+          Add-Content -Path $env:GITHUB_PATH -Value (Split-Path -Parent $found)
+      - name: Empacotar
+        run: pwsh scripts/package.ps1 -SkipBuild
+      - name: Upload assets
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-assets
+          path: artifacts/**
+          retention-days: 14
