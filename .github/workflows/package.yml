@@ -33,7 +33,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Download publish
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: publish-win-x64
           path: publish/win-x64
