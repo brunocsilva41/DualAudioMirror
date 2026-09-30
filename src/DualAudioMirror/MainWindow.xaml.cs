@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Threading;
 using NAudio.CoreAudioApi;
 using NAudio.Wave;
@@ -99,11 +100,15 @@ namespace DualAudioMirror
         private string _savedDefaultId;
         private bool _running;
         private bool _starting;
+        private string _statusKind = "neutral";
 
         private bool SyncActive => ChkSync.IsChecked == true && !string.IsNullOrEmpty(_virtualCableId);
 
         public MainWindow()
         {
+            AppSettings.Load();
+            Themes.ThemeManager.Apply(AppSettings.Current.Theme);
+            SourceInitialized += (s, e) => ApplyTitleBarTheme();
             InitializeComponent();
             DeviceCombo.ItemsSource = _allDevices;
             TargetList.ItemsSource = _targets;
@@ -133,16 +138,31 @@ namespace DualAudioMirror
                 ChkSync.IsChecked = false;
                 ChkSync.IsEnabled = false;
             }
+            else
+            {
+                ChkSync.IsChecked = AppSettings.Current.LastSync;
+            }
 
             RefreshDevices();
+
+            string savedSourceId = AppSettings.Current.LastSourceDeviceId;
+            if (!string.IsNullOrEmpty(savedSourceId) &&
+                _allDevices.Any(d => d.Id == savedSourceId))
+                DeviceCombo.SelectedValue = savedSourceId;
+
             RefreshLog();
 
             if (string.IsNullOrEmpty(_virtualCableId))
-                StatusLine.Text = "Modo sincronizado indisponível: instale o \"VB-Cable\" (https://vb-audio.com/Cable/) e reabra o app para liberar a opção.";
+                SetStatus("Modo sincronizado indisponível: instale o \"VB-Cable\" (https://vb-audio.com/Cable/) e reabra o app para liberar a opção.", "error");
             else
-                StatusLine.Text = SyncActive
+                SetStatus(SyncActive
                     ? "Modo sincronizado: o cabo virtual é a fonte e todos os aparelhos marcados tocam junto."
-                    : "Modo espelho: o principal é a fonte e apenas os aparelhos marcados tocam junto.";
+                    : "Modo espelho: o principal é a fonte e apenas os aparelhos marcados tocam junto.",
+                    "neutral");
+
+            VersionText.Text = Update.UpdateInfo.AppVersion;
+            BtnThemeToggle.Content = AppSettings.Current.Theme == "Light" ? "Tema: Claro" : "Tema: Escuro";
+            RefreshStatsCard();
         }
 
         private static void Log(string message)
@@ -160,7 +180,7 @@ namespace DualAudioMirror
         {
             Dispatcher.BeginInvoke(new Action(() =>
             {
-                StatusLine.Text = "Erro do motor: " + message;
+                SetStatus("Erro do motor: " + message, "error");
                 Log("UI: erro do motor: " + message);
             }));
         }
@@ -200,7 +220,7 @@ namespace DualAudioMirror
             RebuildTargets();
 
             if (_allDevices.Count == 0)
-                StatusLine.Text = "Nenhum dispositivo de saída encontrado.";
+                SetStatus("Nenhum dispositivo de saída encontrado.", "error");
         }
 
         private void DeviceCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -219,9 +239,10 @@ namespace DualAudioMirror
             }
             if (_running) return;
             RebuildTargets();
-            StatusLine.Text = SyncActive
+            SetStatus(SyncActive
                 ? "Modo sincronizado: o cabo virtual é a fonte e todos os aparelhos marcados tocam junto."
-                : "Modo espelho: o principal é a fonte e apenas os aparelhos marcados tocam junto.";
+                : "Modo espelho: o principal é a fonte e apenas os aparelhos marcados tocam junto.",
+                "neutral");
         }
 
         private static bool IsLikelyTvOrMonitor(string name)
@@ -245,6 +266,15 @@ namespace DualAudioMirror
                 if (!previous.ContainsKey(row.DeviceId))
                     previous[row.DeviceId] = row;
 
+            var saved = new Dictionary<string, DeviceSetting>();
+            var savedList = AppSettings.Current.Targets;
+            if (savedList != null)
+            {
+                foreach (var pref in savedList)
+                    if (pref != null && !string.IsNullOrEmpty(pref.DeviceId) && !saved.ContainsKey(pref.DeviceId))
+                        saved[pref.DeviceId] = pref;
+            }
+
             _targets.Clear();
             foreach (var d in _allDevices)
             {
@@ -252,10 +282,19 @@ namespace DualAudioMirror
 
                 var row = new TargetRow { DeviceId = d.Id, Name = d.Name };
                 TargetRow old;
+                DeviceSetting pref;
                 if (previous.TryGetValue(d.Id, out old))
                 {
                     row.Selected = old.Selected;
                     row.DelayText = old.DelayText;
+                }
+                else if (saved.TryGetValue(d.Id, out pref))
+                {
+                    int delay = pref.DelayMs;
+                    if (delay < 0) delay = 0;
+                    if (delay > 400) delay = 400;
+                    row.Selected = pref.Selected;
+                    row.DelayText = delay.ToString();
                 }
                 else
                 {
@@ -333,6 +372,8 @@ namespace DualAudioMirror
         {
             if (_running || _starting) return;
 
+            SavePreferences();
+
             bool sync = SyncActive;
             string sourceId;
             string sourceName;
@@ -347,7 +388,7 @@ namespace DualAudioMirror
                 var source = DeviceCombo.SelectedItem as ComboDevice;
                 if (source == null)
                 {
-                    StatusLine.Text = "Selecione o dispositivo principal.";
+                    SetStatus("Selecione o dispositivo principal.", "error");
                     return;
                 }
                 sourceId = source.Id;
@@ -357,7 +398,7 @@ namespace DualAudioMirror
             var rows = _targets.Where(r => r.Selected).ToList();
             if (rows.Count == 0)
             {
-                StatusLine.Text = "Marque pelo menos um dispositivo para tocar junto.";
+                SetStatus("Marque pelo menos um dispositivo para tocar junto.", "error");
                 return;
             }
 
@@ -396,9 +437,10 @@ namespace DualAudioMirror
             ChkSetDefault.IsEnabled = false;
             ChkSync.IsEnabled = false;
             TargetList.IsEnabled = false;
-            StatusLine.Text = "Iniciando: aguardando pré-buffer de 60 ms" +
-                              (sync ? " (reproduza algo; o som vai sair nos aparelhos marcados assim que encher)." :
-                                      " (reproduza algo no dispositivo principal).");
+            SetStatus("Iniciando: aguardando pré-buffer de 60 ms" +
+                      (sync ? " (reproduza algo; o som vai sair nos aparelhos marcados assim que encher)." :
+                              " (reproduza algo no dispositivo principal)."),
+                      "active");
 
             try
             {
@@ -415,7 +457,7 @@ namespace DualAudioMirror
                 }
                 RestoreWindowsDefault();
                 SetRunningUi(false);
-                StatusLine.Text = "Erro ao iniciar: " + ex.Message;
+                SetStatus("Erro ao iniciar: " + ex.Message, "error");
                 Log("UI: falha ao iniciar: " + ex.Message);
                 return;
             }
@@ -439,7 +481,7 @@ namespace DualAudioMirror
                 RestoreWindowsDefault();
                 SetRunningUi(false);
                 if (!string.Equals(StatusLine.Text, "Parado.", StringComparison.Ordinal))
-                    StatusLine.Text = "Iniciamento cancelado.";
+                    SetStatus("Iniciamento cancelado.", "neutral");
                 Log("UI: início cancelado pelo usuário.");
                 return;
             }
@@ -465,8 +507,9 @@ namespace DualAudioMirror
             _ticker.Start();
             RefreshDiagnostics();
 
-            StatusLine.Text = (sync ? "Modo sincronizado ativo — fonte: " : "Espelhando: ") + sourceName +
-                              " → " + string.Join(", ", rows.Select(r => r.Name));
+            SetStatus((sync ? "Modo sincronizado ativo — fonte: " : "Espelhando: ") + sourceName +
+                      " → " + string.Join(", ", rows.Select(r => r.Name)),
+                      "active");
             Log("UI: iniciado, fonte=" + sourceName + ", alvos=" + rows.Count + ", sync=" + sync);
         }
 
@@ -489,8 +532,103 @@ namespace DualAudioMirror
             RestoreWindowsDefault();
             SetRunningUi(false);
             StatsLine.Text = "";
-            StatusLine.Text = status;
+            RefreshStatsCard();
+            SetStatus(status, "neutral");
             Log("UI: parado.");
+        }
+
+        private void SetStatus(string message, string kind)
+        {
+            StatusLine.Text = message;
+            _statusKind = kind == "active" || kind == "error" ? kind : "neutral";
+
+            string dotKey = "Brush.TextSecondary";
+            if (_statusKind == "active") dotKey = "Brush.Success";
+            else if (_statusKind == "error") dotKey = "Brush.Error";
+
+            string fgKey = _statusKind == "neutral" ? "Brush.TextSecondary" : "Brush.TextPrimary";
+
+            try
+            {
+                var dot = Application.Current.FindResource(dotKey) as Brush;
+                if (dot != null) StatusDot.Fill = dot;
+                var fg = Application.Current.FindResource(fgKey) as Brush;
+                if (fg != null) StatusLine.Foreground = fg;
+            }
+            catch (Exception)
+            {
+            }
+        }
+
+        private void SavePreferences()
+        {
+            try
+            {
+                AppSettings settings = AppSettings.Current;
+                var source = DeviceCombo.SelectedItem as ComboDevice;
+                settings.LastSourceDeviceId = source != null ? source.Id : "";
+                settings.LastSync = ChkSync.IsChecked == true;
+                if (settings.Targets == null)
+                    settings.Targets = new List<DeviceSetting>();
+                settings.Targets.Clear();
+                foreach (var row in _targets)
+                    settings.Targets.Add(new DeviceSetting
+                    {
+                        DeviceId = row.DeviceId,
+                        Selected = row.Selected,
+                        DelayMs = row.DelayMs
+                    });
+                AppSettings.Save();
+            }
+            catch (Exception)
+            {
+            }
+        }
+
+        private void BtnThemeToggle_Click(object sender, RoutedEventArgs e)
+        {
+            string next = AppSettings.Current.Theme == "Light" ? "Dark" : "Light";
+            Themes.ThemeManager.Apply(next);
+            BtnThemeToggle.Content = next == "Light" ? "Tema: Claro" : "Tema: Escuro";
+            SetStatus(StatusLine.Text, _statusKind);
+            ApplyTitleBarTheme();
+        }
+
+        [System.Runtime.InteropServices.DllImport("dwmapi.dll", PreserveSig = true)]
+        private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int value, int size);
+
+        private void ApplyTitleBarTheme()
+        {
+            try
+            {
+                IntPtr hwnd = new System.Windows.Interop.WindowInteropHelper(this).Handle;
+                if (hwnd == IntPtr.Zero) return;
+                int dark = AppSettings.Current.Theme == "Dark" ? 1 : 0;
+                if (DwmSetWindowAttribute(hwnd, 20, ref dark, 4) != 0)
+                    DwmSetWindowAttribute(hwnd, 19, ref dark, 4);
+            }
+            catch (Exception)
+            {
+            }
+        }
+
+        private void RefreshStatsCard()
+        {
+            if (StatsCard == null || StatsLine == null) return;
+            StatsCard.Visibility = string.IsNullOrEmpty(StatsLine.Text)
+                ? Visibility.Collapsed
+                : Visibility.Visible;
+        }
+
+        private void BtnCheckUpdate_Click(object sender, RoutedEventArgs e)
+        {
+            if (_running || _starting)
+            {
+                StatusLine.Text = "Pare a reprodução antes de verificar atualizações.";
+                return;
+            }
+
+            Update.UpdateService.ShowManualCheck(this);
         }
 
         private void DelayBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
@@ -522,7 +660,7 @@ namespace DualAudioMirror
                 }
                 catch (Exception ex)
                 {
-                    StatusLine.Text = "Não foi possível abrir a pasta do log: " + ex.Message;
+                    SetStatus("Não foi possível abrir a pasta do log: " + ex.Message, "error");
                 }
                 return;
             }
@@ -533,7 +671,7 @@ namespace DualAudioMirror
             }
             catch (Exception ex)
             {
-                StatusLine.Text = "Não foi possível abrir o log: " + ex.Message;
+                SetStatus("Não foi possível abrir o log: " + ex.Message, "error");
             }
         }
 
@@ -547,6 +685,7 @@ namespace DualAudioMirror
             catch (Exception ex)
             {
                 StatsLine.Text = "Erro ao ler estatísticas: " + ex.Message;
+                RefreshStatsCard();
                 return;
             }
             if (snap == null) return;
@@ -587,6 +726,7 @@ namespace DualAudioMirror
             }
 
             StatsLine.Text = sb.ToString();
+            RefreshStatsCard();
             RefreshLog();
         }
 
@@ -610,20 +750,21 @@ namespace DualAudioMirror
         {
             if (_running || _starting)
             {
-                StatusLine.Text = "Clique em Parar antes de testar o som.";
+                SetStatus("Clique em Parar antes de testar o som.", "error");
                 return;
             }
 
             var rows = _targets.Where(r => r.Selected).ToList();
             if (rows.Count == 0)
             {
-                StatusLine.Text = "Marque pelo menos um dispositivo para o teste.";
+                SetStatus("Marque pelo menos um dispositivo para o teste.", "error");
                 return;
             }
 
             BtnTest.IsEnabled = false;
-            StatusLine.Text = "Testando... aguarde e OUÇA o tom de ~4 segundos.";
+            SetStatus("Testando... aguarde e OUÇA o tom de ~4 segundos.", "active");
             StatsLine.Text = "";
+            RefreshStatsCard();
 
             try
             {
@@ -671,13 +812,14 @@ namespace DualAudioMirror
                     return string.Join(Environment.NewLine, lines);
                 });
 
-                StatusLine.Text = result + Environment.NewLine +
-                                  "Você ouviu o tom? Se sim, a saída está OK. Agora clique em Iniciar e toque uma música.";
+                SetStatus(result + Environment.NewLine +
+                          "Você ouviu o tom? Se sim, a saída está OK. Agora clique em Iniciar e toque uma música.",
+                          result.Contains("Falhou:") ? "error" : "neutral");
                 Log("UI: teste concluído.");
             }
             catch (Exception ex)
             {
-                StatusLine.Text = "Erro no teste: " + ex.Message;
+                SetStatus("Erro no teste: " + ex.Message, "error");
             }
             finally
             {
@@ -717,6 +859,7 @@ namespace DualAudioMirror
 
         protected override void OnClosing(CancelEventArgs e)
         {
+            SavePreferences();
             _ticker.Stop();
             try
             {
