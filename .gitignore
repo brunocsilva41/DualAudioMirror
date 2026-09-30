@@ -1,0 +1,26 @@
+# Visual Studio / MSBuild
+.vs/
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.rsuser
+
+# Saídas de build
+publish/
+artifacts/
+[Dd]ebug/
+[Rr]elease/
+
+# Logs e temporários
+*.log
+*.tmp
+Thumbs.db
+desktop.ini
+
+# IDEs
+.idea/
+.vscode/
+*.swp
