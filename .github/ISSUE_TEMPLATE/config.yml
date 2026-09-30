@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Suporte e uso do VB-Cable
+    url: https://vb-audio.com/Cable/
+    about: Instalação e uso do driver VB-Cable, necessário para o espelhamento de áudio
+  - name: Releases
+    url: https://github.com/brunocsilva41/DualAudioMirror/releases
+    about: Downloads, notas de versão e arquivos de instalação oficiais

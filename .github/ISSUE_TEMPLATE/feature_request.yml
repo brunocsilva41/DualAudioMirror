@@ -1,0 +1,35 @@
+name: Pedir feature
+description: Sugira uma melhoria ou uma funcionalidade nova
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problema
+    attributes:
+      label: Problema
+      description: Qual problema ou necessidade esta funcionalidade resolve?
+      placeholder: Descreva a situação em que você sente falta disto
+    validations:
+      required: true
+  - type: textarea
+    id: solucao
+    attributes:
+      label: Solução proposta
+      description: Descreva como você imagina a solução
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Área
+      options:
+        - Interface
+        - Motor de áudio
+        - Instalador
+        - Atualizações
+        - Outro
+  - type: textarea
+    id: alternativas
+    attributes:
+      label: Alternativas consideradas
+      description: Outras soluções ou alternativas que você pensou

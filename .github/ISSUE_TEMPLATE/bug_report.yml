@@ -1,0 +1,54 @@
+name: Reportar bug
+description: Relate um problema encontrado no DualAudioMirror
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: input
+    id: versao
+    attributes:
+      label: Versão
+      description: Qual versão do DualAudioMirror você está usando?
+      placeholder: "ex.: 1.2.3"
+    validations:
+      required: true
+  - type: input
+    id: windows
+    attributes:
+      label: Windows
+      description: Qual versão do Windows você usa?
+      placeholder: "ex.: Windows 11 23H2 (build 22631)"
+  - type: textarea
+    id: passos
+    attributes:
+      label: Passos para reproduzir
+      description: Passos claros e detalhados para reproduzir o problema
+      placeholder: |
+        1. Abro o DualAudioMirror
+        2. Seleciono o dispositivo de saída
+        3. Inicio o espelhamento
+    validations:
+      required: true
+  - type: textarea
+    id: comportamento
+    attributes:
+      label: Comportamento esperado e comportamento atual
+      description: O que você esperava que acontecesse e o que aconteceu de fato
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Anexe ou cole o conteúdo do arquivo de log
+      hint: Anexe o arquivo %LocalAppData%\DualAudioMirror\DualAudioMirror.log
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      options:
+        - label: Pesquisei as issues existentes antes de abrir esta
+          required: true
+  - type: input
+    id: dispositivos
+    attributes:
+      label: Áudio e dispositivos envolvidos
+      description: Placas, fones, drivers e periféricos relacionados ao problema
+      placeholder: "ex.: Realtek ALC897 + VB-Cable, fones USB HyperX"
