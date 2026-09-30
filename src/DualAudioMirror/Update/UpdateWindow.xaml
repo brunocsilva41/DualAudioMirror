@@ -1,0 +1,106 @@
+<Window x:Class="DualAudioMirror.Update.UpdateWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Atualização do DualAudioMirror"
+        Width="460"
+        SizeToContent="Height"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False"
+        Background="{DynamicResource Brush.Surface}"
+        Icon="pack://application:,,,/icon.ico"
+        Loaded="Window_Loaded"
+        Closing="Window_Closing"
+        Closed="Window_Closed">
+    <StackPanel Margin="16">
+        <Border Style="{StaticResource Style.Card}">
+            <StackPanel Margin="14,12">
+                <TextBlock x:Name="TitleText"
+                           Style="{StaticResource Style.H1}"
+                           TextWrapping="Wrap"
+                           Text="Verificando..."/>
+                <TextBlock x:Name="SubtitleText"
+                           Style="{StaticResource Style.Body}"
+                           Margin="0,6,0,0"
+                           TextWrapping="Wrap"
+                           Text=""/>
+            </StackPanel>
+        </Border>
+
+        <TextBlock x:Name="NotesTitle"
+                   Style="{StaticResource Style.H2}"
+                   Margin="0,12,0,0"
+                   TextWrapping="Wrap"
+                   Text="Notas desta versão"/>
+
+        <Border x:Name="NotesBorder" Style="{StaticResource Style.Card}" Margin="0,6,0,0">
+            <ScrollViewer MaxHeight="220"
+                          VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled">
+                <TextBlock x:Name="NotesText"
+                           Style="{StaticResource Style.Body}"
+                           Margin="14,12"
+                           TextWrapping="Wrap"
+                           Text=""/>
+            </ScrollViewer>
+        </Border>
+
+        <ProgressBar x:Name="Progress"
+                     Height="6"
+                     Margin="0,12,0,0"
+                     Minimum="0"
+                     Maximum="100"
+                     Foreground="{DynamicResource Brush.Accent}"
+                     Background="{DynamicResource Brush.Border}"
+                     Visibility="Collapsed"/>
+
+        <TextBlock x:Name="StatusText"
+                   Style="{StaticResource Style.Body}"
+                   Margin="0,8,0,0"
+                   TextWrapping="Wrap"
+                   Visibility="Collapsed"
+                   Text=""/>
+
+        <Button x:Name="BtnInstallNow"
+                Style="{StaticResource Style.BtnPrimary}"
+                Content="Atualizar agora"
+                Margin="0,14,0,0"
+                Click="BtnInstallNow_Click"/>
+
+        <Grid Margin="0,8,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Button x:Name="BtnDownloadLater"
+                    Grid.Column="0"
+                    Style="{StaticResource Style.BtnSecondary}"
+                    Content="Baixar e instalar depois"
+                    Margin="0,0,4,0"
+                    Click="BtnDownloadLater_Click"/>
+            <Button x:Name="BtnLater"
+                    Grid.Column="1"
+                    Style="{StaticResource Style.BtnSecondary}"
+                    Content="Mais tarde"
+                    Margin="4,0,0,0"
+                    Click="BtnLater_Click"/>
+        </Grid>
+
+        <Button x:Name="BtnIgnore"
+                Content="Ignorar esta versão"
+                HorizontalAlignment="Left"
+                Margin="0,10,0,0"
+                Padding="0"
+                Background="Transparent"
+                BorderThickness="0"
+                Cursor="Hand"
+                Foreground="{DynamicResource Brush.TextSecondary}"
+                Visibility="Collapsed"
+                Click="BtnIgnore_Click"/>
+
+        <TextBlock Style="{StaticResource Style.Caption}"
+                   Margin="0,10,0,0"
+                   TextWrapping="Wrap"
+                   Text="As atualizações são baixadas diretamente das releases oficiais no GitHub."/>
+    </StackPanel>
+</Window>

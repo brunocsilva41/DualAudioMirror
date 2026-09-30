@@ -1,6 +1,7 @@
 using System;
 using System.Windows;
 using System.Windows.Threading;
+using DualAudioMirror.Update;
 
 namespace DualAudioMirror
 {
@@ -11,6 +12,21 @@ namespace DualAudioMirror
             DispatcherUnhandledException += OnDispatcherUnhandledException;
             AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
             base.OnStartup(e);
+            try
+            {
+                AppSettings.Load();
+            }
+            catch (Exception)
+            {
+            }
+            try
+            {
+                if (AppSettings.Current.AutoCheckUpdates)
+                    UpdateService.StartAutoCheck();
+            }
+            catch (Exception)
+            {
+            }
         }
 
         private void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
