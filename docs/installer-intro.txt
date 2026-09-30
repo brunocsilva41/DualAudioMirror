@@ -1,0 +1,61 @@
+﻿DUALAUDIOMIRROR - INFORMAÇÕES ANTES DA INSTALAÇÃO
+==================================================
+
+O QUE É
+-------
+O DualAudioMirror é um aplicativo para Windows que pega o áudio de um
+dispositivo de origem (por exemplo, a saída do navegador ou do player) e
+envia para dois ou mais dispositivos de saída ao mesmo tempo. Serve para
+ouvir o mesmo conteúdo, simultaneamente, em fones de ouvido, caixas de som
+e outros aparelhos conectados ao computador.
+
+
+MODOS DE USO
+------------
+1) Modo Espelho
+   O áudio da origem é espelhado para todos os dispositivos de saída
+   marcados. Não exige nada além do Windows e da sua placa de som.
+
+2) Modo Sincronizado (requer o cabo virtual VB-Cable)
+   O VB-Cable vira a fonte de áudio e todos os aparelhos marcados tocam
+   junto, com atraso (delay) ajustável por dispositivo, para que nada
+   fique "fora de passo". Use este modo quando perceber diferença de
+   sincronia entre os aparelhos no modo espelho.
+
+   O VB-Cable é um driver de cabo de áudio virtual distribuído pelo
+   fabricante VB-Audio. Site oficial: https://vb-audio.com/Cable/
+   Neste instalador você pode pedir para baixá-lo e instalá-lo, ou
+   fazê-lo depois, direto no site do fabricante.
+
+
+REQUISITOS
+----------
+- Windows 10 ou Windows 11 (64 bits)
+- Pelo menos um dispositivo de entrada e dois dispositivos de saída de
+  áudio (placa de som, fones, caixas, HDMI etc.)
+- Modo sincronizado: cabo virtual VB-Cable instalado
+
+
+PRIVACIDADE
+-----------
+- O DualAudioMirror funciona 100% offline: não envia nem recebe dados.
+- Não há telemetria, rastreamento, conta de usuário ou coleta de dados.
+- A única conexão possível é a consulta opcional de versão do programa,
+  que pode ser desligada nas configurações.
+
+
+ONDE FICAM OS ARQUIVOS
+----------------------
+- Programa: na pasta escolhida nesta instalação
+  (padrão: C:\Program Files\DualAudioMirror ou
+   C:\Users\<usuario>\AppData\Local\Programs\DualAudioMirror)
+- Configurações e logs: %LocalAppData%\DualAudioMirror
+  (settings.json e arquivos de log ficam lá e são preservados
+   mesmo se o programa for desinstalado)
+
+
+REPOSITÓRIO E DOCUMENTAÇÃO
+--------------------------
+https://github.com/brunocsilva41/DualAudioMirror
+
+Código-fonte sob licença MIT (veja o arquivo LICENSE).
