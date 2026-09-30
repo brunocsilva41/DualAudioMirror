@@ -91,10 +91,40 @@ namespace DualAudioMirror.Update
             int n = pa.Length < pb.Length ? pa.Length : pb.Length;
             for (int i = 0; i < n; i++)
             {
-                int c = string.CompareOrdinal(pa[i], pb[i]);
+                int c = ComparePreReleaseSegment(pa[i], pb[i]);
                 if (c != 0) return c;
             }
             return pa.Length.CompareTo(pb.Length);
+        }
+
+        private static int ComparePreReleaseSegment(string a, string b)
+        {
+            bool na = IsNumericSegment(a);
+            bool nb = IsNumericSegment(b);
+            if (na && nb) return CompareNumericString(a, b);
+            if (na) return -1;
+            if (nb) return 1;
+            return string.CompareOrdinal(a, b);
+        }
+
+        private static bool IsNumericSegment(string s)
+        {
+            if (string.IsNullOrEmpty(s)) return false;
+            for (int i = 0; i < s.Length; i++)
+            {
+                if (s[i] < '0' || s[i] > '9') return false;
+            }
+            return true;
+        }
+
+        private static int CompareNumericString(string a, string b)
+        {
+            string x = a.TrimStart('0');
+            string y = b.TrimStart('0');
+            if (x.Length == 0) x = "0";
+            if (y.Length == 0) y = "0";
+            if (x.Length != y.Length) return x.Length.CompareTo(y.Length);
+            return string.CompareOrdinal(x, y);
         }
 
         public static bool operator >(SemVer left, SemVer right)
