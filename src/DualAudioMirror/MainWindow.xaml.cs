@@ -110,6 +110,9 @@ namespace DualAudioMirror
             Themes.ThemeManager.Apply(AppSettings.Current.Theme);
             SourceInitialized += (s, e) => ApplyTitleBarTheme();
             InitializeComponent();
+            double workHeight = SystemParameters.WorkArea.Height;
+            if (Height > workHeight) Height = workHeight;
+            if (MinHeight > workHeight) MinHeight = workHeight;
             DeviceCombo.ItemsSource = _allDevices;
             TargetList.ItemsSource = _targets;
             _ticker.Tick += (s, e) => RefreshDiagnostics();
