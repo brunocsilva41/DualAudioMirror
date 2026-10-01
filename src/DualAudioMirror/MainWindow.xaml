@@ -118,7 +118,7 @@
                                           IsChecked="{Binding Selected, Mode=TwoWay}"
                                           VerticalAlignment="Center" Padding="4,3"
                                           ToolTip="Marcar para este aparelho tocar junto"/>
-                                <TextBox Grid.Column="1" Width="48" Height="22"
+                                <TextBox Grid.Column="1" Width="52" Padding="2,2" VerticalContentAlignment="Center"
                                          TextAlignment="Center" VerticalAlignment="Center"
                                          ToolTip="Compensa o atraso físico do dispositivo"
                                          Text="{Binding DelayText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
