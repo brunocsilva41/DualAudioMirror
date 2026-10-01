@@ -286,7 +286,9 @@
                             BorderThickness="{TemplateBinding BorderThickness}"
                             CornerRadius="6"
                             Padding="{TemplateBinding Padding}">
-                        <ScrollViewer x:Name="PART_ContentHost" Focusable="False"/>
+                        <ScrollViewer Focusable="False" CanContentScroll="True">
+                            <ItemsPresenter/>
+                        </ScrollViewer>
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsEnabled" Value="False">
