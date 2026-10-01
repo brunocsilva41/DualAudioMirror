@@ -103,6 +103,7 @@ var
   DepsStatusLabel: TLabel;
   VbCableDetected: Boolean;
   VbCableInstalled: Boolean;
+  VbCableFilesBefore: Boolean;
 
 function URLDownloadToFile(caller: Cardinal; url: string; fileName: string; reserved: Cardinal; callback: Cardinal): Cardinal;
   external 'URLDownloadToFileW@urlmon.dll stdcall';
@@ -119,8 +120,8 @@ begin
     FileExists(ExpandConstant('{sys}\drivers\vbaudio_cable_2003.sys')) or
     FileExists(ExpandConstant('{sys}\drivers\vbc_wdm.sys')) or
     FileExists(ExpandConstant('{sys}\drivers\vbcable64.sys'));
-  if (not Result) and IsWin64 then
-    Result := DirExists(ExpandConstant('{commonpf64}\VB\CABLE'));
+  // Não usar a pasta Program Files\VB\CABLE: ela sobra após desinstalar o
+  // VB-Cable e gerava falso positivo (instalação pulada).
 end;
 
 function DetectVBCablePnp: Boolean;
@@ -134,7 +135,7 @@ begin
   OutFile := ExpandConstant('{tmp}\dam-vbcable-pnp.txt');
   if FileExists(OutFile) then
     DeleteFile(OutFile);
-  Cmd := '-NoProfile -NonInteractive -Command "$c=@(Get-PnpDevice | Where-Object { $_.FriendlyName -like ''*CABLE*'' -and $_.Status -eq ''OK'' }).Count; if($c -gt 0){Set-Content -Path ''' + OutFile + ''' -Value ''1'' -Encoding ASCII}else{Set-Content -Path ''' + OutFile + ''' -Value ''0'' -Encoding ASCII}"';
+  Cmd := '-NoProfile -NonInteractive -Command "$c=@(Get-PnpDevice -Class AudioEndpoint -PresentOnly -ErrorAction SilentlyContinue | Where-Object { $_.FriendlyName -like ''*CABLE Input*'' -and $_.Status -eq ''OK'' }).Count; if($c -gt 0){Set-Content -Path ''' + OutFile + ''' -Value ''1'' -Encoding ASCII}else{Set-Content -Path ''' + OutFile + ''' -Value ''0'' -Encoding ASCII}"';
   if Exec('powershell.exe', Cmd, '', SW_HIDE, ewWaitUntilTerminated, RC) then
   begin
     if RC = 0 then
@@ -150,9 +151,9 @@ end;
 
 function DetectVBCable: Boolean;
 begin
-  Result := DetectVBCableFiles;
-  if not Result then
-    Result := DetectVBCablePnp;
+  { Antes de instalar só conta o endpoint ativo (o mesmo que o app procura):
+    .sys sem dispositivo é desinstalação incompleta e não serve ao app. }
+  Result := DetectVBCablePnp;
 end;
 
 function FindVbSetup(const Dir: String): String;
@@ -243,7 +244,9 @@ begin
     exit;
   end;
 
-  VbCableInstalled := DetectVBCable;
+  { O endpoint pode só aparecer após o reboot: aceita também um .sys que
+    não existia antes da instalação. }
+  VbCableInstalled := DetectVBCablePnp or ((not VbCableFilesBefore) and DetectVBCableFiles);
   if VbCableInstalled then
   begin
     if MsgBox('O driver do VB-Cable foi instalado.' + NL + NL +
@@ -277,6 +280,7 @@ procedure InitializeWizard;
 begin
   VbCableDetected := False;
   VbCableInstalled := False;
+  VbCableFilesBefore := DetectVBCableFiles;
   if not WizardSilent then
     VbCableDetected := DetectVBCable;
 
