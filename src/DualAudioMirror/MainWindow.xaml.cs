@@ -620,7 +620,7 @@ namespace DualAudioMirror
         private void RefreshStatsCard()
         {
             if (StatsCard == null || StatsLine == null) return;
-            StatsCard.Visibility = string.IsNullOrEmpty(StatsLine.Text)
+            StatsCard.Visibility = string.IsNullOrWhiteSpace(StatsLine.Text)
                 ? Visibility.Collapsed
                 : Visibility.Visible;
         }
