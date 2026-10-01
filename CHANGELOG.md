@@ -7,6 +7,10 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+- Adicione mudanças aqui.
+
+## [1.0.1] - 2026-10-01
+
 ### Corrigido
 
 - Lista "Também tocar o som em" aparecia vazia: o template do `ListBox` no tema não tinha `ItemsPresenter`, então os dispositivos nunca eram desenhados.
@@ -47,5 +51,6 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 - Deriva entre dispositivos é corrigida periodicamente pelo ajuste do buffer de cada saída.
 - Delay acima do limite é limitado a 400 ms para evitar buffers inválidos.
 
-[Não lançado]: https://github.com/brunocsilva41/DualAudioMirror/compare/v1.0.0...HEAD
+[Não lançado]: https://github.com/brunocsilva41/DualAudioMirror/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/brunocsilva41/DualAudioMirror/releases/tag/v1.0.1
 [1.0.0]: https://github.com/brunocsilva41/DualAudioMirror/releases/tag/v1.0.0
