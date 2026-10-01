@@ -7,7 +7,14 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
-- Adicione mudanças aqui.
+### Corrigido
+
+- Lista "Também tocar o som em" aparecia vazia: o template do `ListBox` no tema não tinha `ItemsPresenter`, então os dispositivos nunca eram desenhados.
+- Lista de dispositivos espremida pela altura fixa da janela: a janela agora é redimensionável, a lista tem altura mínima e a altura respeita a área útil da tela.
+- Caixa de delay cortava o número digitado.
+- Aviso "Nenhum dispositivo de saída encontrado" não é mais sobrescrito pelo aviso do VB-Cable.
+- Card de estatísticas aparecia vazio.
+- Instalador: a pasta `Program Files\VB\CABLE` que sobra após desinstalar o VB-Cable era tomada como VB-Cable instalado e a instalação automática era pulada. A detecção agora exige o endpoint "CABLE Input" ativo.
 
 ## [1.0.0] - 2026-09-30
 
