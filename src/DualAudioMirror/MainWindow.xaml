@@ -5,8 +5,8 @@
         Icon="pack://application:,,,/icon.ico"
         Background="{DynamicResource Brush.Surface}"
         Foreground="{DynamicResource Brush.TextPrimary}"
-        Height="780" Width="580"
-        WindowStartupLocation="CenterScreen" ResizeMode="CanMinimize">
+        Height="880" Width="600" MinHeight="700" MinWidth="560"
+        WindowStartupLocation="CenterScreen" ResizeMode="CanResize">
     <Grid Margin="14">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -99,11 +99,11 @@
                     <TextBlock Grid.Column="0" Style="{DynamicResource Style.H2}"
                                TextWrapping="Wrap"
                                Text="Também tocar o som em:"/>
-                    <TextBlock Grid.Column="1" Width="74" Margin="8,0,2,0"
+                    <TextBlock Grid.Column="1" Margin="8,0,2,0"
                                Style="{DynamicResource Style.H2}"
                                TextAlignment="Center" Text="Delay (ms)"/>
                 </Grid>
-                <ListBox Grid.Row="1" x:Name="TargetList"
+                <ListBox Grid.Row="1" x:Name="TargetList" MinHeight="140"
                          HorizontalContentAlignment="Stretch"
                          ScrollViewer.VerticalScrollBarVisibility="Auto"
                          ScrollViewer.HorizontalScrollBarVisibility="Disabled">
@@ -181,7 +181,7 @@
                                MouseLeftButtonUp="LogPathText_MouseLeftButtonUp"
                                ToolTip="Clique para abrir o arquivo de log"/>
                 </Grid>
-                <TextBox x:Name="LogBox" Height="92"
+                <TextBox x:Name="LogBox" Height="72"
                          IsReadOnly="True" FontFamily="Consolas" FontSize="11"
                          TextWrapping="NoWrap"
                          VerticalScrollBarVisibility="Auto"
