@@ -155,7 +155,9 @@ namespace DualAudioMirror
 
             RefreshLog();
 
-            if (string.IsNullOrEmpty(_virtualCableId))
+            // Sem dispositivos, mantém o aviso já definido pelo RefreshDevices.
+            if (_allDevices.Count == 0) { }
+            else if (string.IsNullOrEmpty(_virtualCableId))
                 SetStatus("Modo sincronizado indisponível: instale o \"VB-Cable\" (https://vb-audio.com/Cable/) e reabra o app para liberar a opção.", "error");
             else
                 SetStatus(SyncActive
